@@ -1,0 +1,33 @@
+@import "tailwindcss";
+@import "../tailwind.css";
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Prevent iOS bounce scroll */
+    overscroll-behavior: none;
+  }
+
+  /* Remove default button styles */
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer utilities {
+  /* Gradient text helper — Tailwind's bg-clip-text needs this */
+  .text-gradient-acc {
+    background: linear-gradient(130deg, var(--color-acc), var(--color-acc2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
