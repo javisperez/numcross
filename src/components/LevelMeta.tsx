@@ -17,6 +17,16 @@ export function LevelMeta() {
         <div className="text-[0.75rem] font-extrabold text-tm font-game">
           Level <em className="not-italic text-acc text-[0.95rem]">{levelNum}</em>
         </div>
+        <div className="text-[0.75rem] text-tm font-game">
+          {diff.label} • {eqCount} equations
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="w-full bg-gray-700 rounded-full h-1.5 mb-2">
+        <div
+          className={`h-1.5 rounded-full transition-all duration-500 ${isHard ? 'bg-orange-500' : 'bg-green-500'}`}
+          style={{ width: `${progress * 100}%` }}
+        />
       </div>
     </div>
   )
