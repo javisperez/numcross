@@ -4,7 +4,7 @@ Infinite procedural arithmetic crossword puzzle — PWA built with React, TypeSc
 
 ## Play
 
-→ [Live on GitHub Pages](https://YOUR_USERNAME.github.io/numcross/)
+→ [Live on GitHub Pages](https:/javisperez.github.io/numcross/)
 
 ## How to play
 
