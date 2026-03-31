@@ -2,7 +2,11 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import { generateLevel } from '../engine/difficulty'
 import { validateGrid } from '../engine/checker'
-import { computeScoreBreakdown, maxHintsForDifficulty } from '../engine/scoring'
+import { computeScoreBreakdown } from '../engine/scoring'
+
+const HINT_REFILL_EVERY = 2000  // earn 1 hint per 2000 points scored
+const HINT_MAX_POOL     = 3     // max hints you can hold at once
+const HINT_INITIAL      = 3     // starting hint pool
 import type { LevelData, Cell, UndoEntry, ScoreBreakdown } from '../engine/types'
 
 function nextSeed(seed: number): number {
@@ -29,6 +33,8 @@ interface GameState {
   bestStreak: number
   mistakeCount: number
   hintsUsed: number
+  hintsPool: number
+  hintsEarnedThisLevel: number
   undoStack: UndoEntry[]
   bestTimes: Record<string, number>
   perfectLevels: number
@@ -64,7 +70,7 @@ const INITIAL_SEED = 42
 // On mismatch, migrate() keeps safe state (level number, scores, records)
 // and discards fragile state (in-progress puzzle grid) so the user lands
 // on a clean puzzle instead of corrupt data.
-const STORE_VERSION = 1
+const STORE_VERSION = 2
 
 export const useGameStore = create<GameStore>()(
   persist(
@@ -82,6 +88,8 @@ export const useGameStore = create<GameStore>()(
       bestStreak:    0,
       mistakeCount:  0,
       hintsUsed:     0,
+      hintsPool:     HINT_INITIAL,
+      hintsEarnedThisLevel: 0,
       undoStack:     [],
       bestTimes:     {},
       perfectLevels: 0,
@@ -131,6 +139,8 @@ export const useGameStore = create<GameStore>()(
           bestStreak:    0,
           mistakeCount:  0,
           hintsUsed:     0,
+          hintsPool:     HINT_INITIAL,
+          hintsEarnedThisLevel: 0,
           undoStack:     [],
           bestTimes:     {},
           perfectLevels: 0,
@@ -154,6 +164,7 @@ export const useGameStore = create<GameStore>()(
           timerSec:      0,
           mistakeCount:  0,
           hintsUsed:     0,
+          hintsEarnedThisLevel: 0,
           undoStack:     [],
           winModal:      false,
           lastBreakdown: null,
@@ -250,11 +261,10 @@ export const useGameStore = create<GameStore>()(
       },
 
       useHint: () => {
-        const { levelData, liveGrid, tileUsed, hintsUsed, undoStack } = get()
+        const { levelData, liveGrid, tileUsed, hintsUsed, hintsPool, undoStack } = get()
         if (!levelData) return
 
-        const max = maxHintsForDifficulty(levelData.difficulty)
-        if (hintsUsed >= max) { set({ toast: 'No hints left!' }); return }
+        if (hintsPool <= 0) { set({ toast: 'No hints left! Earn more by scoring points.' }); return }
 
         const empties: { r: number; c: number; ans: number }[] = []
         liveGrid.forEach((row, r) => row.forEach((cell, c) => {
@@ -274,11 +284,11 @@ export const useGameStore = create<GameStore>()(
 
         const newUndo: UndoEntry[] = [...undoStack, { r: target.r, c: target.c, prevVal: null, prevTileIdx: -1 }].slice(-50)
 
-        set({ liveGrid: newGrid, tileUsed: newUsed, hintsUsed: hintsUsed + 1, undoStack: newUndo, selRC: null })
+        set({ liveGrid: newGrid, tileUsed: newUsed, hintsUsed: hintsUsed + 1, hintsPool: hintsPool - 1, undoStack: newUndo, selRC: null })
       },
 
       checkSolution: () => {
-        const { levelData, liveGrid, timerSec, mistakeCount, hintsUsed, levelStreak, totalScore, bestTimes, levelNum, bestStreak, perfectLevels } = get()
+        const { levelData, liveGrid, timerSec, mistakeCount, hintsUsed, hintsPool, levelStreak, totalScore, bestTimes, levelNum, bestStreak, perfectLevels } = get()
         if (!levelData) return
 
         const wrong = validateGrid(liveGrid, levelData)
@@ -299,16 +309,24 @@ export const useGameStore = create<GameStore>()(
           const newBest = { ...bestTimes }
           if (!newBest[key] || timerSec < newBest[key]) newBest[key] = timerSec
           const newStreak = levelStreak + 1
+          const newTotalScore = totalScore + bd.total
+
+          // Refill hint pool based on score thresholds crossed
+          const hintsEarned = Math.floor(newTotalScore / HINT_REFILL_EVERY) - Math.floor(totalScore / HINT_REFILL_EVERY)
+          const newHintsPool = Math.min(HINT_MAX_POOL, hintsPool + hintsEarned)
+          const hintsActuallyAdded = newHintsPool - hintsPool
 
           set({
             liveGrid: newGrid,
             winModal: true,
             lastBreakdown: bd,
-            totalScore: totalScore + bd.total,
+            totalScore: newTotalScore,
             levelStreak: newStreak,
             bestStreak: Math.max(bestStreak, newStreak),
             bestTimes: newBest,
             perfectLevels: (mistakeCount === 0 && hintsUsed === 0) ? perfectLevels + 1 : perfectLevels,
+            hintsPool: newHintsPool,
+            hintsEarnedThisLevel: hintsActuallyAdded,
           })
         } else {
           // ❌ Wrong
@@ -370,6 +388,7 @@ export const useGameStore = create<GameStore>()(
         bestStreak:    state.bestStreak,
         bestTimes:     state.bestTimes,
         perfectLevels: state.perfectLevels,
+        hintsPool:     state.hintsPool,
         // ── Fragile: discarded by migrate() when STORE_VERSION is bumped ─────
         liveGrid:     state.liveGrid,
         tileUsed:     state.tileUsed,
@@ -396,6 +415,7 @@ export const useGameStore = create<GameStore>()(
                            ? s.bestTimes as Record<string, number>
                            : {},
           perfectLevels: typeof s.perfectLevels === 'number' ? s.perfectLevels : 0,
+          hintsPool:     typeof s.hintsPool     === 'number' ? s.hintsPool     : HINT_INITIAL,
           // Reset fragile state; restoreLevel() → initLevel() will rebuild it.
           liveGrid:     [],
           tileUsed:     [],

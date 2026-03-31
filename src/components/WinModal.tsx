@@ -65,13 +65,15 @@ function ScoreBreakdownView({ bd, mistakeCount, hintsUsed }: {
 }
 
 export function WinModal() {
-  const winModal      = useGameStore(s => s.winModal)
-  const nextLevel     = useGameStore(s => s.nextLevel)
-  const levelData     = useGameStore(s => s.levelData)
-  const timerSec      = useGameStore(s => s.timerSec)
-  const lastBreakdown = useGameStore(s => s.lastBreakdown)
-  const mistakeCount  = useGameStore(s => s.mistakeCount)
-  const hintsUsed     = useGameStore(s => s.hintsUsed)
+  const winModal             = useGameStore(s => s.winModal)
+  const nextLevel            = useGameStore(s => s.nextLevel)
+  const levelData            = useGameStore(s => s.levelData)
+  const timerSec             = useGameStore(s => s.timerSec)
+  const lastBreakdown        = useGameStore(s => s.lastBreakdown)
+  const mistakeCount         = useGameStore(s => s.mistakeCount)
+  const hintsUsed            = useGameStore(s => s.hintsUsed)
+  const hintsPool            = useGameStore(s => s.hintsPool)
+  const hintsEarnedThisLevel = useGameStore(s => s.hintsEarnedThisLevel)
 
   if (!winModal || !levelData || !lastBreakdown) return null
 
@@ -116,6 +118,16 @@ export function WinModal() {
             mistakeCount={mistakeCount}
             hintsUsed={hintsUsed}
           />
+
+          {hintsEarnedThisLevel > 0 && (
+            <div className="flex items-center justify-center gap-2 mb-5 px-3 py-2 rounded-xl bg-[rgba(255,200,60,0.1)] animate-stagger-in text-[0.78rem] text-acc font-bold">
+              <span>💡</span>
+              <span>
+                {hintsEarnedThisLevel === 1 ? 'Hint unlocked!' : `${hintsEarnedThisLevel} hints unlocked!`}
+                <span className="text-tm font-normal ml-1">({hintsPool} available)</span>
+              </span>
+            </div>
+          )}
 
           <button
             onClick={nextLevel}

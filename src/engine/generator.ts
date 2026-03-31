@@ -201,7 +201,7 @@ function buildGrid(
   const cols = maxC - minC + 1
 
   const numKeys = Object.keys(cells).filter(k => cells[k].type === 'num')
-  const maxBlanks = numKeys.length - 1
+  const maxBlanks = numKeys.length - 2
   const nBlanks = Math.min(maxBlanks, Math.max(2, Math.round(numKeys.length * (1 - fixedRatio))))
   const blankSet = new Set(rng.shuffle([...numKeys]).slice(0, nBlanks))
   const tiles = [...blankSet].map(k => vals[k]).sort((a, b) => a - b)

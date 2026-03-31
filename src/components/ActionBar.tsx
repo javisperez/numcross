@@ -1,17 +1,11 @@
 import { useGameStore } from '../store/useGameStore'
-import { maxHintsForDifficulty } from '../engine/scoring'
 
 export function ActionBar() {
   const undoMove      = useGameStore(s => s.undoMove)
   const clearSelected = useGameStore(s => s.clearSelected)
   const useHint       = useGameStore(s => s.useHint)
   const checkSolution = useGameStore(s => s.checkSolution)
-  const levelData     = useGameStore(s => s.levelData)
-  const hintsUsed     = useGameStore(s => s.hintsUsed)
-
-  const maxHints  = levelData ? maxHintsForDifficulty(levelData.difficulty) : 0
-  const hintsLeft = maxHints - hintsUsed
-  const showHint  = maxHints > 0
+  const hintsPool     = useGameStore(s => s.hintsPool)
 
   const clearBtn = `
     px-6 py-3 rounded-[26px] border-none font-game text-[0.88rem] font-extrabold
@@ -34,19 +28,17 @@ export function ActionBar() {
         Clear
       </button>
 
-      {showHint && (
-        <button
-          onClick={useHint}
-          disabled={hintsLeft <= 0}
-          className={`${clearBtn} relative ${hintsLeft <= 0 ? 'opacity-35 cursor-not-allowed' : ''}`}
-          aria-label={`Use hint (${hintsLeft} remaining)`}
-        >
-          💡 Hint
-          <span className="absolute -top-1.5 -right-1.5 bg-acc2 text-td text-[0.55rem] font-black rounded-[10px] px-1.5 py-px pointer-events-none">
-            {hintsLeft}
-          </span>
-        </button>
-      )}
+      <button
+        onClick={useHint}
+        disabled={hintsPool <= 0}
+        className={`${clearBtn} relative ${hintsPool <= 0 ? 'opacity-35 cursor-not-allowed' : ''}`}
+        aria-label={`Use hint (${hintsPool} remaining)`}
+      >
+        💡 Hint
+        <span className="absolute -top-1.5 -right-1.5 bg-acc2 text-td text-[0.55rem] font-black rounded-[10px] px-1.5 py-px pointer-events-none">
+          {hintsPool}
+        </span>
+      </button>
 
       <button onClick={checkSolution} className={checkBtn} aria-label="Check solution">
         Check ✓

@@ -28,9 +28,9 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'p25',  category: 'progress',   tier: 'gold',   icon: '🏆', title: 'Legendary',       description: 'Complete 300 levels',                         check: s => s.levelsCompleted >= 300 },
 
   // ── Score ─────────────────────────────────────────────────────────────────
-  { id: 's1k',  category: 'score',      tier: 'bronze', icon: '⭐', title: 'Sharp Mind',      description: 'Earn 25,000 total points',                    check: s => s.totalScore >= 25_000   },
-  { id: 's10k', category: 'score',      tier: 'silver', icon: '🌟', title: 'Cruncher',        description: 'Earn 250,000 total points',                   check: s => s.totalScore >= 250_000  },
-  { id: 's50k', category: 'score',      tier: 'gold',   icon: '💫', title: 'Math Wizard',     description: 'Earn 1,000,000 total points',                 check: s => s.totalScore >= 1_000_000  },
+  { id: 's1k',  category: 'score',      tier: 'bronze', icon: '⭐', title: 'Sharp Mind',      description: 'Earn 2,500 total points',                     check: s => s.totalScore >= 2_500    },
+  { id: 's10k', category: 'score',      tier: 'silver', icon: '🌟', title: 'Cruncher',        description: 'Earn 25,000 total points',                    check: s => s.totalScore >= 25_000   },
+  { id: 's50k', category: 'score',      tier: 'gold',   icon: '💫', title: 'Math Wizard',     description: 'Earn 100,000 total points',                   check: s => s.totalScore >= 100_000  },
 
   // ── Streak ────────────────────────────────────────────────────────────────
   { id: 'st3',  category: 'streak',     tier: 'bronze', icon: '🔥', title: 'On a Roll',       description: 'Achieve a 15-level winning streak',           check: s => s.bestStreak >= 15       },
