@@ -1,3 +1,4 @@
+import { Undo2, Eraser, Lightbulb, CheckCircle } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 
 export function ActionBar() {
@@ -7,41 +8,45 @@ export function ActionBar() {
   const checkSolution = useGameStore(s => s.checkSolution)
   const hintsPool     = useGameStore(s => s.hintsPool)
 
-  const clearBtn = `
-    px-6 py-3 rounded-[26px] border-none font-game text-[0.88rem] font-extrabold
+  const iconBtn = `
+    flex flex-col items-center gap-1 px-6 py-2.5 rounded-2xl border-none
+    font-game text-[0.58rem] font-bold uppercase tracking-wide
     cursor-pointer transition-transform hover:scale-[1.04] active:scale-[0.97]
-    bg-surface text-tl
-  `
-  const checkBtn = `
-    px-6 py-3 rounded-[26px] border-none font-game text-[0.88rem] font-extrabold
-    cursor-pointer transition-transform hover:scale-[1.04] active:scale-[0.97]
-    bg-gradient-to-r from-acc to-acc2 text-td shadow-[0_4px_14px_rgba(255,200,60,0.22)]
+    bg-surface text-tm
   `
 
   return (
-    <div className="flex gap-2.5 mt-4 flex-wrap justify-center">
-      <button onClick={undoMove} className={clearBtn} aria-label="Undo last move">
-        ↩ Undo
+    <div className="flex gap-3 mt-4 w-full max-w-160 justify-center">
+      <button onClick={undoMove} className={iconBtn} aria-label="Undo last move">
+        <Undo2 size={17} strokeWidth={2} />
+        Undo
       </button>
 
-      <button onClick={clearSelected} className={clearBtn} aria-label="Clear selected cell">
+      <button onClick={clearSelected} className={iconBtn} aria-label="Clear selected cell">
+        <Eraser size={17} strokeWidth={2} />
         Clear
       </button>
 
       <button
         onClick={useHint}
         disabled={hintsPool <= 0}
-        className={`${clearBtn} relative ${hintsPool <= 0 ? 'opacity-35 cursor-not-allowed' : ''}`}
+        className={`${iconBtn} relative ${hintsPool <= 0 ? 'opacity-30 cursor-not-allowed' : 'text-acc'}`}
         aria-label={`Use hint (${hintsPool} remaining)`}
       >
-        💡 Hint
-        <span className="absolute -top-1.5 -right-1.5 bg-acc2 text-td text-[0.55rem] font-black rounded-[10px] px-1.5 py-px pointer-events-none">
+        <Lightbulb size={17} strokeWidth={2} />
+        Hint
+        <span className="absolute -top-1 -right-1 bg-acc text-td text-[0.5rem] font-black rounded-full w-4 h-4 flex items-center justify-center pointer-events-none leading-none">
           {hintsPool}
         </span>
       </button>
 
-      <button onClick={checkSolution} className={checkBtn} aria-label="Check solution">
-        Check ✓
+      <button
+        onClick={checkSolution}
+        className="flex flex-col items-center gap-1 px-6 py-2.5 rounded-2xl border-none font-game text-[0.58rem] font-bold uppercase tracking-wide cursor-pointer transition-transform hover:scale-[1.04] active:scale-[0.97] bg-linear-to-r from-acc to-acc2 text-td shadow-[0_3px_10px_rgba(255,200,60,0.2)]"
+        aria-label="Check solution"
+      >
+        <CheckCircle size={17} strokeWidth={2} />
+        Check
       </button>
     </div>
   )

@@ -1,4 +1,10 @@
 import { useState } from 'react'
+import {
+  Play, RotateCcw, Lock, AlertTriangle, CheckCircle,
+  Hash, Ruler, Trophy, Star, Sparkles, Wand2,
+  Flame, Rocket, Zap, Timer, Wind, Diamond, Crown,
+  type LucideIcon,
+} from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 import {
   ACHIEVEMENTS,
@@ -8,6 +14,24 @@ import {
   type Achievement,
   type GameStats,
 } from '../engine/achievements'
+
+const achievementIcons: Record<string, LucideIcon> = {
+  p1:   Hash,
+  p10:  Ruler,
+  p25:  Trophy,
+  s1k:  Star,
+  s10k: Sparkles,
+  s50k: Wand2,
+  st3:  Flame,
+  st10: Rocket,
+  st25: Zap,
+  sp90: Timer,
+  sp45: Wind,
+  sp20: Zap,
+  pf1:  Sparkles,
+  pf5:  Diamond,
+  pf20: Crown,
+}
 
 interface Props {
   onContinue: () => void
@@ -26,6 +50,7 @@ function AchievementBadge({
   onClick: () => void
 }) {
   const color = TIER_COLORS[achievement.tier]
+  const IconComp = unlocked ? (achievementIcons[achievement.id] ?? Star) : Lock
 
   return (
     <button
@@ -34,12 +59,16 @@ function AchievementBadge({
       style={
         unlocked
           ? { borderColor: color + '55', background: 'rgba(35,40,57,0.9)' }
-          : { borderColor: '#2a2f42', background: 'rgba(20,24,36,0.7)', opacity: 0.45 }
+          : { borderColor: '#2a2f42', background: 'rgba(20,24,36,0.7)', opacity: 0.4 }
       }
     >
-      <span className="text-[1.5rem] leading-none">{unlocked ? achievement.icon : '🔒'}</span>
+      <IconComp
+        size={18}
+        strokeWidth={1.8}
+        style={{ color: unlocked ? color : '#4a5568' }}
+      />
       <span
-        className="text-[0.5rem] font-black uppercase tracking-wide text-center leading-tight font-game"
+        className="text-[0.48rem] font-black uppercase tracking-wide text-center leading-tight font-game"
         style={{ color: unlocked ? color : '#4a5568' }}
       >
         {achievement.title}
@@ -63,7 +92,7 @@ function ConfirmModal({
       onClick={e => { if (e.target === e.currentTarget) onCancel() }}
     >
       <div className="bg-surface border border-[#2e3650] rounded-3xl p-7 text-center shadow-[0_24px_64px_rgba(0,0,0,0.6)] animate-pop-in w-full max-w-sm">
-        <div className="text-4xl mb-3">⚠️</div>
+        <AlertTriangle size={32} strokeWidth={1.8} className="text-acc mx-auto mb-3" />
         <h2 className="text-[1.3rem] font-black text-tl font-game mb-2">Start Over?</h2>
         <p className="text-[0.8rem] text-tm leading-relaxed mb-6">
           This will permanently erase your level progress, total score, streaks, and all achievements. There's no going back.
@@ -87,7 +116,7 @@ function ConfirmModal({
   )
 }
 
-// ── Achievement detail tooltip ───────────────────────────────────────────────
+// ── Achievement detail modal ─────────────────────────────────────────────────
 
 function AchievementDetail({
   achievement,
@@ -100,6 +129,7 @@ function AchievementDetail({
 }) {
   const color = TIER_COLORS[achievement.tier]
   const tierLabel = achievement.tier.charAt(0).toUpperCase() + achievement.tier.slice(1)
+  const IconComp = unlocked ? (achievementIcons[achievement.id] ?? Star) : Lock
 
   return (
     <div
@@ -107,7 +137,12 @@ function AchievementDetail({
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="bg-surface border border-[#2e3650] rounded-3xl p-6 text-center shadow-[0_24px_64px_rgba(0,0,0,0.6)] animate-pop-in w-full max-w-sm">
-        <div className="text-5xl mb-2">{unlocked ? achievement.icon : '🔒'}</div>
+        <IconComp
+          size={36}
+          strokeWidth={1.5}
+          style={{ color: unlocked ? color : '#4a5568' }}
+          className="mx-auto mb-3"
+        />
         <div
           className="inline-block text-[0.6rem] font-black uppercase tracking-widest px-2 py-0.5 rounded-full mb-2 font-game"
           style={{ color, background: color + '20', border: `1px solid ${color}44` }}
@@ -116,11 +151,13 @@ function AchievementDetail({
         </div>
         <h3 className="text-[1.1rem] font-black text-tl font-game mb-1">{achievement.title}</h3>
         <p className="text-[0.78rem] text-tm leading-relaxed mb-4">{achievement.description}</p>
-        <div
-          className="text-[0.72rem] font-bold font-game"
+        <div className="flex items-center justify-center gap-1.5 text-[0.72rem] font-bold font-game"
           style={{ color: unlocked ? '#9de0a0' : '#556677' }}
         >
-          {unlocked ? '✓ Unlocked' : 'Locked'}
+          {unlocked
+            ? <><CheckCircle size={13} strokeWidth={2.5} /> Unlocked</>
+            : <><Lock size={13} strokeWidth={2} /> Locked</>
+          }
         </div>
       </div>
     </div>
@@ -132,7 +169,7 @@ function AchievementDetail({
 function StatChip({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="flex flex-col items-center gap-0.5 px-4 py-2.5 rounded-2xl bg-bg">
-      <span className="text-[1.2rem] font-black text-acc font-game">{value}</span>
+      <span className="text-[1.1rem] font-black text-acc font-game">{value}</span>
       <span className="text-[0.55rem] font-bold text-tm uppercase tracking-[0.8px] font-game">{label}</span>
     </div>
   )
@@ -141,13 +178,13 @@ function StatChip({ label, value }: { label: string; value: string | number }) {
 // ── Home screen ──────────────────────────────────────────────────────────────
 
 export function HomeScreen({ onContinue, onNewGame }: Props) {
-  const levelNum     = useGameStore(s => s.levelNum)
-  const totalScore   = useGameStore(s => s.totalScore)
-  const levelStreak  = useGameStore(s => s.levelStreak)
-  const bestStreak   = useGameStore(s => s.bestStreak)
-  const bestTimes    = useGameStore(s => s.bestTimes)
+  const levelNum      = useGameStore(s => s.levelNum)
+  const totalScore    = useGameStore(s => s.totalScore)
+  const levelStreak   = useGameStore(s => s.levelStreak)
+  const bestStreak    = useGameStore(s => s.bestStreak)
+  const bestTimes     = useGameStore(s => s.bestTimes)
   const perfectLevels = useGameStore(s => s.perfectLevels)
-  const resetGame    = useGameStore(s => s.resetGame)
+  const resetGame     = useGameStore(s => s.resetGame)
 
   const [showConfirm, setShowConfirm] = useState(false)
   const [detailAch, setDetailAch]     = useState<Achievement | null>(null)
@@ -188,9 +225,9 @@ export function HomeScreen({ onContinue, onNewGame }: Props) {
         <div className="w-full h-px bg-[#2e3650]" />
 
         <div className="flex items-center justify-center gap-2 w-full">
-          <StatChip label="Level"   value={levelNum} />
-          <StatChip label="Score"   value={totalScore.toLocaleString()} />
-          <StatChip label="Streak"  value={levelStreak} />
+          <StatChip label="Level"  value={levelNum} />
+          <StatChip label="Score"  value={totalScore.toLocaleString()} />
+          <StatChip label="Streak" value={levelStreak} />
         </div>
       </div>
 
@@ -198,16 +235,18 @@ export function HomeScreen({ onContinue, onNewGame }: Props) {
       <div className="w-full max-w-sm flex flex-col gap-3">
         <button
           onClick={onContinue}
-          className="w-full bg-gradient-to-r from-acc to-acc2 text-td py-4 rounded-[26px] font-game text-[1.05rem] font-extrabold cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(255,200,60,0.3)] border-none"
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-acc to-acc2 text-td py-4 rounded-[26px] font-game text-[1.05rem] font-extrabold cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_4px_20px_rgba(255,200,60,0.3)] border-none"
         >
-          ▶ Continue · Level {levelNum}
+          <Play size={18} strokeWidth={2.5} />
+          Continue · Level {levelNum}
         </button>
 
         <button
           onClick={() => setShowConfirm(true)}
-          className="w-full py-3.5 rounded-[26px] font-game text-[0.9rem] font-bold cursor-pointer transition-all hover:border-[#3e4860] active:scale-[0.98] border border-[#2e3650] bg-transparent text-tm"
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-[26px] font-game text-[0.9rem] font-bold cursor-pointer transition-all hover:border-[#3e4860] active:scale-[0.98] border border-[#2e3650] bg-transparent text-tm"
         >
-          ↺ New Game
+          <RotateCcw size={15} strokeWidth={2} />
+          New Game
         </button>
       </div>
 
