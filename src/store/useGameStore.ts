@@ -48,6 +48,7 @@ interface GameState {
 interface GameActions {
   restoreLevel: () => void
   initLevel: () => void
+  resetLevel: () => void
   resetGame: () => void
   tickTimer: () => void
   selectCell: (r: number, c: number) => void
@@ -171,12 +172,39 @@ export const useGameStore = create<GameStore>()(
         })
       },
 
+      // Restarts the current puzzle but keeps hint-placed numbers: a spent
+      // hint is permanent.
+      resetLevel: () => {
+        const { levelData, liveGrid } = get()
+        if (!levelData || liveGrid.length === 0) { get().initLevel(); return }
+
+        const tileUsed: (string | null)[] = levelData.tiles.map(() => null)
+        const grid = liveGrid.map((row, r) => row.map((cell, c) => {
+          if (!cell || cell.t !== 'B') return cell
+          if (!cell.hint) return { t: 'B' as const, ans: cell.ans, val: null }
+          const idx = levelData.tiles.findIndex((v, i) => v === cell.val && tileUsed[i] === null)
+          if (idx >= 0) tileUsed[idx] = `${r},${c}`
+          return { t: 'B' as const, ans: cell.ans, val: cell.val, hint: true as const }
+        }))
+
+        set({
+          liveGrid:      grid,
+          tileUsed,
+          selRC:         null,
+          timerSec:      0,
+          mistakeCount:  0,
+          undoStack:     [],
+          winModal:      false,
+          lastBreakdown: null,
+        })
+      },
+
       tickTimer: () => set(s => ({ timerSec: s.timerSec + 1 })),
 
       selectCell: (r, c) => {
         const { liveGrid, selRC } = get()
         const cell = liveGrid[r]?.[c]
-        if (!cell || cell.t !== 'B') return
+        if (!cell || cell.t !== 'B' || cell.hint) return
         const same = selRC?.r === r && selRC?.c === c
         set({ selRC: same ? null : { r, c } })
       },
@@ -188,7 +216,7 @@ export const useGameStore = create<GameStore>()(
 
         const { r, c } = selRC
         const cell = liveGrid[r][c]
-        if (!cell || cell.t !== 'B') return
+        if (!cell || cell.t !== 'B' || cell.hint) return
 
         const prevVal = cell.val
         const prevTileIdx = prevVal !== null ? tileUsed.indexOf(`${r},${c}`) : -1
@@ -218,7 +246,7 @@ export const useGameStore = create<GameStore>()(
         if (!selRC) return
         const { r, c } = selRC
         const cell = liveGrid[r][c]
-        if (!cell || cell.t !== 'B' || cell.val === null) return
+        if (!cell || cell.t !== 'B' || cell.val === null || cell.hint) return
 
         const prevTileIdx = tileUsed.indexOf(`${r},${c}`)
         const newGrid = liveGrid.map(row => row.map(cl => cl ? { ...cl } : null))
@@ -261,7 +289,7 @@ export const useGameStore = create<GameStore>()(
       },
 
       useHint: () => {
-        const { levelData, liveGrid, tileUsed, hintsUsed, hintsPool, undoStack } = get()
+        const { levelData, liveGrid, tileUsed, hintsUsed, hintsPool } = get()
         if (!levelData) return
 
         if (hintsPool <= 0) { set({ toast: 'No hints left! Earn more by scoring points.' }); return }
@@ -280,11 +308,11 @@ export const useGameStore = create<GameStore>()(
         const newUsed = [...tileUsed]
         const cell = newGrid[target.r][target.c] as Extract<Cell, { t: 'B' }>
         cell.val = target.ans
+        cell.hint = true
         newUsed[tileIdx] = `${target.r},${target.c}`
 
-        const newUndo: UndoEntry[] = [...undoStack, { r: target.r, c: target.c, prevVal: null, prevTileIdx: -1 }].slice(-50)
-
-        set({ liveGrid: newGrid, tileUsed: newUsed, hintsUsed: hintsUsed + 1, hintsPool: hintsPool - 1, undoStack: newUndo, selRC: null })
+        // Hints are permanent, so they are not added to the undo stack.
+        set({ liveGrid: newGrid, tileUsed: newUsed, hintsUsed: hintsUsed + 1, hintsPool: hintsPool - 1, selRC: null })
       },
 
       checkSolution: () => {

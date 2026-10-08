@@ -1,3 +1,4 @@
+import { Lightbulb } from 'lucide-react'
 import { useGameStore } from '../store/useGameStore'
 import type { Cell } from '../engine/types'
 
@@ -73,6 +74,9 @@ function GameCell({
     bg = 'bg-ok'
   } else if (isBad) {
     bg = 'bg-bad animate-jolt'
+  } else if (cell.hint) {
+    bg        = 'bg-[#8b6fd1] ring-2 ring-[#c9b6ff]/70'
+    textColor = 'text-white'
   } else if (isFilled) {
     bg        = 'bg-cell-user'
     textColor = 'text-white'
@@ -82,8 +86,8 @@ function GameCell({
     <div
       style={{ width: size, height: size, fontSize }}
       className={`
-        flex items-center justify-center rounded-[10px] font-extrabold
-        cursor-pointer select-none flex-shrink-0 transition-all duration-[120ms]
+        relative flex items-center justify-center rounded-[10px] font-extrabold
+        ${cell.hint ? 'cursor-default' : 'cursor-pointer'} select-none flex-shrink-0 transition-all duration-[120ms]
         ${bg} ${textColor}
       `}
       onClick={() => selectCell(row, col)}
@@ -92,6 +96,13 @@ function GameCell({
       aria-pressed={isSelected}
     >
       {isFilled ? cell.val : ''}
+      {cell.hint && (
+        <Lightbulb
+          size={Math.max(8, Math.round(size * 0.26))}
+          strokeWidth={2.5}
+          className="absolute top-[3px] right-[3px] text-[#e6dcff]"
+        />
+      )}
     </div>
   )
 }

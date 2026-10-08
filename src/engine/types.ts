@@ -4,7 +4,7 @@ export type Difficulty = 'Easy' | 'Medium' | 'Hard' | 'Expert'
 
 /** A single cell in the live grid */
 export type CellFixed = { t: 'F'; v: number | Operator | '=' }
-export type CellBlank = { t: 'B'; ans: number; val: number | null; status?: 'ok' | 'bad' }
+export type CellBlank = { t: 'B'; ans: number; val: number | null; status?: 'ok' | 'bad'; hint?: true }
 export type Cell = CellFixed | CellBlank | null
 
 /** The generated level data — everything needed to render and validate */

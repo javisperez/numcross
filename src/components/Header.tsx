@@ -9,7 +9,7 @@ interface Props {
 export function Header({ onGoHome }: Props) {
   const levelNum = useGameStore(s => s.levelNum)
   const timerSec = useGameStore(s => s.timerSec)
-  const initLevel = useGameStore(s => s.initLevel)
+  const resetLevel = useGameStore(s => s.resetLevel)
 
   return (
     <header className="w-full max-w-160 flex items-center justify-between pb-2 mb-2 border-b border-[#2e3650]">
@@ -32,7 +32,7 @@ export function Header({ onGoHome }: Props) {
           {formatTime(timerSec)}
         </span>
         <button
-          onClick={() => initLevel()}
+          onClick={() => resetLevel()}
           className="w-8 h-8 rounded-full bg-surface text-tm flex items-center justify-center hover:bg-[#2e3650] active:scale-90 transition-all border-none cursor-pointer"
           aria-label="Reset level"
           title="Reset level"
